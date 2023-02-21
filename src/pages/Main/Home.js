@@ -2,39 +2,32 @@ import React, { useEffect, useState } from "react";
 import ProductCard from "../../components/ProductCard";
 import { useDispatch, useSelector } from "react-redux";
 import { toggle, toggleBrands } from "../../features/filter/filterSlice";
-import { getProducts } from "../../features/products/productsSlice";
+import { useGetProductsQuery } from "../../features/api/apiSlice";
 
 const Home = () => {
   // const [products, setProducts] = useState([]);
   const dispatch = useDispatch();
   const filter = useSelector((state)=> state.filter);
   const {brands, stock} = filter;
-  const {products, isLoading} = useSelector(state => state.products);
   
 
-  useEffect(() => {
-    // fetch("http://localhost:5000/products")
-    //   .then((res) => res.json())
-    //   .then((data) => setProducts(data.data));
-    dispatch(getProducts());
-  }, []);
+  const {data, isLoading, error, isError} = useGetProductsQuery(null, {refetchOnMountOrArgChange: true});
+  const products = data?.data;
+  console.log(products)
 
 
   const activeClass = "text-white  bg-indigo-500 border-white";
 
   let content;
 
-  if(isLoading){
-    content = <p>Loading......</p>
-  }
 
-  if(products.length){
+  if(products?.length){
     content = products.map((product) => (
       <ProductCard key={product.model} product={product} />
     ))
   }
 
-  if(products.length && (stock || brands.length)){ //if product length, stock = true brand length true
+  if(products?.length && (stock || brands?.length)){ //if product length, stock = true brand length true
     content = products
     .filter((product) => {
       if(stock){
@@ -43,7 +36,7 @@ const Home = () => {
       return product;
     })
     .filter(product => {
-      if(brands.length){
+      if(brands?.length){
         return brands.includes(product.brand);
       }
       return product;
@@ -51,6 +44,10 @@ const Home = () => {
     .map((product) => (
       <ProductCard key={product.model} product={product} />
     ))
+  }
+
+  if(isLoading){
+    return <p>Loading...</p>
   }
 
   return (
